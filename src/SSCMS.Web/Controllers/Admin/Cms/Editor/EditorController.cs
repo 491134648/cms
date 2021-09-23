@@ -35,8 +35,9 @@ namespace SSCMS.Web.Controllers.Admin.Cms.Editor
         private readonly ITemplateRepository _templateRepository;
         private readonly IContentCheckRepository _contentCheckRepository;
         private readonly ITranslateRepository _translateRepository;
+        private readonly IStatRepository _statRepository;
 
-        public EditorController(IAuthManager authManager, ICreateManager createManager, IPathManager pathManager, IDatabaseManager databaseManager, IPluginManager pluginManager, ICensorManager censorManager, ISiteRepository siteRepository, IChannelRepository channelRepository, IContentRepository contentRepository, IContentGroupRepository contentGroupRepository, IContentTagRepository contentTagRepository, ITableStyleRepository tableStyleRepository, ITemplateRepository templateRepository, IContentCheckRepository contentCheckRepository, ITranslateRepository translateRepository)
+        public EditorController(IAuthManager authManager, ICreateManager createManager, IPathManager pathManager, IDatabaseManager databaseManager, IPluginManager pluginManager, ICensorManager censorManager, ISiteRepository siteRepository, IChannelRepository channelRepository, IContentRepository contentRepository, IContentGroupRepository contentGroupRepository, IContentTagRepository contentTagRepository, ITableStyleRepository tableStyleRepository, ITemplateRepository templateRepository, IContentCheckRepository contentCheckRepository, ITranslateRepository translateRepository, IStatRepository statRepository)
         {
             _authManager = authManager;
             _createManager = createManager;
@@ -53,6 +54,7 @@ namespace SSCMS.Web.Controllers.Admin.Cms.Editor
             _templateRepository = templateRepository;
             _contentCheckRepository = contentCheckRepository;
             _translateRepository = translateRepository;
+            _statRepository = statRepository;
         }
 
         public class GetRequest : ChannelRequest
@@ -68,7 +70,7 @@ namespace SSCMS.Web.Controllers.Admin.Cms.Editor
             public Channel Channel { get; set; }
             public IEnumerable<string> GroupNames { get; set; }
             public IEnumerable<string> TagNames { get; set; }
-            public IEnumerable<InputStyle> Styles { get; set; }
+            public IEnumerable<TableStyle> Styles { get; set; }
             public IEnumerable<Template> Templates { get; set; }
             public List<Select<int>> CheckedLevels { get; set; }
             public int CheckedLevel { get; set; }

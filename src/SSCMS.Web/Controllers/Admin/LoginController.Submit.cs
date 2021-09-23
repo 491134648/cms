@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SSCMS.Configuration;
+using SSCMS.Core.Utils;
 using SSCMS.Enums;
 using SSCMS.Models;
 using SSCMS.Utils;
@@ -41,6 +42,21 @@ namespace SSCMS.Web.Controllers.Admin
             }
             else
             {
+                if (!request.IsForceLogoutAndLogin)
+                {
+                  var captcha = TranslateUtils.JsonDeserialize<CaptchaUtils.Captcha>(_settingsManager.Decrypt(request.Token));
+
+                  if (captcha == null || string.IsNullOrEmpty(captcha.Value) || captcha.ExpireAt < DateTime.Now)
+                  {
+                      return this.Error("验证码已超时，请点击刷新验证码！");
+                  }
+
+                  if (!StringUtils.EqualsIgnoreCase(captcha.Value, request.Value))
+                  {
+                      return this.Error("验证码不正确，请重新输入！");
+                  }
+                }
+
                 string userName;
                 string errorMessage;
                 (administrator, userName, errorMessage) = await _administratorRepository.ValidateAsync(request.Account, request.Password, true);
@@ -68,6 +84,18 @@ namespace SSCMS.Web.Controllers.Admin
             await _logRepository.AddAdminLogAsync(administrator, PageUtils.GetIpAddress(Request), Constants.ActionsLoginSuccess);
 
             var cacheKey = Constants.GetSessionIdCacheKey(administrator.Id);
+            if (!request.IsForceLogoutAndLogin)
+            {
+                var cacheState = await _dbCacheRepository.GetValueAndCreatedDateAsync(cacheKey);
+                if (!string.IsNullOrEmpty(cacheState.Item1) && cacheState.Item2 > DateTime.Now.AddMinutes(-30))
+                {
+                    return new SubmitResult
+                    {
+                        IsLoginExists = true,
+                    };
+                }
+            }
+
             var isEnforcePasswordChange = false;
             var sessionId = StringUtils.Guid();
             await _dbCacheRepository.RemoveAndInsertAsync(cacheKey, sessionId);
@@ -92,6 +120,7 @@ namespace SSCMS.Web.Controllers.Admin
 
             return new SubmitResult
             {
+                IsLoginExists = false,
                 Administrator = administrator,
                 SessionId = sessionId,
                 IsEnforcePasswordChange = isEnforcePasswordChange,

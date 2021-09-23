@@ -639,6 +639,25 @@ var utils = {
     }
   },
 
+  validateChinese: function (rule, value, callback) {
+    if (!value) {
+      callback(new Error(rule.message || '字段必须是中文'));
+    } else {
+      var isAll = true;
+      for(var i = 0; i < value.length; i++) {
+        if (escape(value[i]).indexOf("%u") === -1) {
+          isAll = false;
+          continue;
+        }
+      }
+      if (isAll) {
+        callback()
+      } else {
+        callback(new Error(rule.message || '字段必须是中文'));
+      }
+    }
+  },
+
   validateInt: function (rule, value, callback) {
     if (!value) {
       callback();
@@ -815,7 +834,7 @@ var utils = {
           });
         } else if (ruleType === "chinese") {
           array.push({
-            type: "chinese",
+            validator: utils.validateChinese,
             message: rule.message || options.chinese,
           });
         } else if (ruleType === "currency") {

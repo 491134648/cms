@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using SSCMS.Configuration;
 using SSCMS.Core.Utils;
 using SSCMS.Enums;
 using SSCMS.Models;
@@ -37,8 +36,7 @@ namespace SSCMS.Web.Controllers.Admin.Cms.Editor
             var styles = allStyles
                 .Where(style =>
                     !string.IsNullOrEmpty(style.DisplayName) &&
-                    !ListUtils.ContainsIgnoreCase(ColumnsManager.MetadataAttributes.Value, style.AttributeName))
-                .Select(x => new InputStyle(x)).ToList();
+                    !ListUtils.ContainsIgnoreCase(ColumnsManager.MetadataAttributes.Value, style.AttributeName)).ToList();
             var templates =
                 await _templateRepository.GetTemplatesByTypeAsync(request.SiteId, TemplateType.ContentTemplate);
 
@@ -91,6 +89,13 @@ namespace SSCMS.Web.Controllers.Admin.Cms.Editor
                     {
                         var value = content.Get(style.AttributeName);
                         content.Set(style.AttributeName, StringUtils.ToString(value));
+                    }
+                }
+                else if (style.InputType == InputType.Text || style.InputType == InputType.TextArea || style.InputType == InputType.TextEditor)
+                {
+                    if (request.ContentId == 0)
+                    {
+                        content.Set(style.AttributeName, string.Empty);
                     }
                 }
             }
